@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoRichInputModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.richinput.ExpoRichInputModule"]
+  }
+}
