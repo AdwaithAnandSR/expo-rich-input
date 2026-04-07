@@ -1,4 +1,4 @@
-export { default } from "./RichInputView";
+export { default } from "./ExpoRichInputView";
 
 export type {
     EditEvent,
