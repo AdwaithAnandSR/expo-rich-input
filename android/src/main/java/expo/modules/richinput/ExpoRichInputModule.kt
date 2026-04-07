@@ -16,7 +16,7 @@ class ExpoRichInputModule : Module() {
                 "onSelectionChange"
             )
 
-            OnViewDidMount {
+            OnCreate {
                 view ->
 
                 view.onEditEvent = {
