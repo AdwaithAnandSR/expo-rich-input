@@ -9,7 +9,9 @@ import android.view.inputmethod.*
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.views.ExpoView
 
-class RichInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
+class RichInputView(context: Context, val appContext: AppContext) : ExpoView(context, appContext) {
+
+    var viewId: Int = -1
 
     private var cursorPosition = 0
     private var selectionStart = 0
@@ -37,7 +39,13 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         return EditorInputConnection(this)
     }
 
-    // 🔥 Hardware keyboard support
+    private fun emitEvent(name: String, payload: Map<String, Any>) {
+        appContext.eventEmitter?.emit(
+            name,
+            payload + mapOf("id" to viewId)
+        )
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.isCtrlPressed) {
             val action = when (keyCode) {
@@ -51,7 +59,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             }
 
             action?.let {
-                sendEvent("onKeyboardAction", mapOf("action" to it))
+                emitEvent("onKeyboardAction", mapOf("action" to it))
                 return true
             }
         }
@@ -71,13 +79,12 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    // 🔥 Core Input Engine
     inner class EditorInputConnection(view: View) : BaseInputConnection(view, false) {
 
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: return false
 
-            sendEvent("onEditEvent", mapOf(
+            emitEvent("onEditEvent", mapOf(
                 "type" to "insert",
                 "text" to str,
                 "cursor" to cursorPosition
@@ -93,7 +100,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         override fun setComposingText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: ""
 
-            sendEvent("onEditEvent", mapOf(
+            emitEvent("onEditEvent", mapOf(
                 "type" to "compose",
                 "text" to str,
                 "cursor" to cursorPosition
@@ -103,7 +110,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         }
 
         override fun finishComposingText(): Boolean {
-            sendEvent("onEditEvent", mapOf(
+            emitEvent("onEditEvent", mapOf(
                 "type" to "composeCommit",
                 "cursor" to cursorPosition
             ))
@@ -114,7 +121,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             if (beforeLength > 0) {
                 val deleteCount = minOf(beforeLength, cursorPosition)
 
-                sendEvent("onEditEvent", mapOf(
+                emitEvent("onEditEvent", mapOf(
                     "type" to "delete",
                     "count" to deleteCount,
                     "cursor" to cursorPosition
@@ -132,7 +139,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             selectionEnd = end
             cursorPosition = end
 
-            sendEvent("onSelectionChange", mapOf(
+            emitEvent("onSelectionChange", mapOf(
                 "start" to start,
                 "end" to end
             ))

@@ -1,21 +1,31 @@
-export type EditEventType = "insert" | "delete" | "compose" | "composeCommit";
+export type EditEventType = 'insert' | 'delete' | 'compose' | 'composeCommit'
 
-export interface EditEvent {
-    type: EditEventType;
-    text?: string;
-    count?: number;
+export type EditEvent = {
+  id: number
+  type: EditEventType
+  text?: string
+  count?: number
+  cursor: number
 }
 
-export interface KeyboardActionEvent {
-    action: "undo" | "redo" | "toggleComment";
+export type KeyboardActionEvent = {
+  id: number
+  action: string
 }
 
-export interface ExpoRichInputRef {
-    focus: () => Promise<void>;
-    blur: () => Promise<void>;
+export type SelectionChangeEvent = {
+  id: number
+  start: number
+  end: number
 }
 
-export interface ExpoRichInputProps {
-    onEditEvent: (event: EditEvent) => void;
-    onKeyboardAction?: (event: KeyboardActionEvent) => void;
+export type ExpoRichInputProps = {
+  onEditEvent?: (e: EditEvent) => void
+  onKeyboardAction?: (e: KeyboardActionEvent) => void
+  onSelectionChange?: (e: SelectionChangeEvent) => void
+}
+
+export type ExpoRichInputRef = {
+  focus: () => void
+  blur: () => void
 }

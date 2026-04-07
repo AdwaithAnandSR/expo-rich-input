@@ -1,39 +1,60 @@
-import { requireNativeViewManager } from "expo-modules-core";
-import { forwardRef, useRef, useImperativeHandle } from "react";
-import { StyleSheet } from "react-native";
-import { focus, blur } from "./ExpoRichInputModule";
-import { ExpoRichInputProps, ExpoRichInputRef } from "./ExpoRichInput.types";
+import React, {
+    useEffect,
+    useRef,
+    forwardRef,
+    useImperativeHandle
+} from "react";
+import { requireNativeViewManager, EventEmitter } from "expo-modules-core";
+
+import * as NativeModule from "./ExpoRichInputModule";
+import type {
+    ExpoRichInputProps,
+    ExpoRichInputRef,
+    EditEvent,
+    KeyboardActionEvent,
+    SelectionChangeEvent
+} from "./ExpoRichInput.types";
 
 const NativeView = requireNativeViewManager("ExpoRichInput");
 
-export const ExpoRichInputView = forwardRef<
-    ExpoRichInputRef,
-    ExpoRichInputProps
->(({ onEditEvent, onKeyboardAction }, ref) => {
-    const nativeRef = useRef<any>(null);
+const emitter = new EventEmitter() as any
 
-    useImperativeHandle(ref, () => ({
-        focus: () => focus(nativeRef.current),
-        blur: () => blur(nativeRef.current)
-    }));
+let globalId = 0;
 
-    return (
-        <NativeView
-            ref={nativeRef}
-            style={styles.input}
-            onEditEvent={(e: any) => onEditEvent(e.nativeEvent)}
-            onKeyboardAction={(e: any) => onKeyboardAction?.(e.nativeEvent)}
-        />
-    );
-});
+const RichInput = forwardRef<ExpoRichInputRef, ExpoRichInputProps>(
+    ({ onEditEvent, onKeyboardAction, onSelectionChange, ...props }, ref) => {
+        const idRef = useRef(++globalId);
+        const nativeRef = useRef<any>(null);
 
-const styles = StyleSheet.create({
-    input: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: 1,
-        height: 1,
-        opacity: 0
+        useImperativeHandle(ref, () => ({
+            focus: () => NativeModule.focus(nativeRef.current),
+            blur: () => NativeModule.blur(nativeRef.current)
+        }));
+
+        useEffect(() => {
+            const subs = [
+                emitter.addListener("onEditEvent", (e: EditEvent) => {
+                    if (e.id === idRef.current) onEditEvent?.(e);
+                }),
+                emitter.addListener(
+                    "onKeyboardAction",
+                    (e: KeyboardActionEvent) => {
+                        if (e.id === idRef.current) onKeyboardAction?.(e);
+                    }
+                ),
+                emitter.addListener(
+                    "onSelectionChange",
+                    (e: SelectionChangeEvent) => {
+                        if (e.id === idRef.current) onSelectionChange?.(e);
+                    }
+                )
+            ];
+
+            return () => subs.forEach(s => s.remove());
+        }, []);
+
+        return <NativeView ref={nativeRef} {...props} id={idRef.current} />;
     }
-});
+);
+
+export default RichInput;
