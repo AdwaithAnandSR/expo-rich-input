@@ -13,6 +13,11 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
 
     var viewId: Int = -1
 
+    // ✅ CALLBACKS (IMPORTANT)
+    var onEditEvent: ((Map<String, Any>) -> Unit)? = null
+    var onKeyboardAction: ((Map<String, Any>) -> Unit)? = null
+    var onSelectionChange: ((Map<String, Any>) -> Unit)? = null
+
     private var cursorPosition = 0
     private var selectionStart = 0
     private var selectionEnd = 0
@@ -26,11 +31,11 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
         outAttrs.inputType = InputType.TYPE_CLASS_TEXT or
-        InputType.TYPE_TEXT_FLAG_MULTI_LINE or
-        InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or
-        EditorInfo.IME_ACTION_NONE
+            EditorInfo.IME_ACTION_NONE
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             outAttrs.initialCapsMode = 0
@@ -39,13 +44,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         return EditorInputConnection(this)
     }
 
-    // FINAL emitter helper
-    private fun emitEvent(name: String, payload: Map<String, Any>) {
-        sendEvent(name, payload + mapOf("id" to viewId))
-    }
-
-
-    // 🔥 Hardware keyboard support
+    // 🔥 Hardware keyboard
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.isCtrlPressed) {
             val action = when (keyCode) {
@@ -59,7 +58,10 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             }
 
             action?.let {
-                emitEvent("onKeyboardAction", mapOf("action" to it))
+                onKeyboardAction?.invoke(mapOf(
+                    "id" to viewId,
+                    "action" to it
+                ))
                 return true
             }
         }
@@ -79,13 +81,13 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    // 🔥 Core Input Engine
     inner class EditorInputConnection(view: View) : BaseInputConnection(view, false) {
 
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: return false
 
-            emitEvent("onEditEvent", mapOf(
+            onEditEvent?.invoke(mapOf(
+                "id" to viewId,
                 "type" to "insert",
                 "text" to str,
                 "cursor" to cursorPosition
@@ -98,39 +100,18 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             return true
         }
 
-        override fun setComposingText(text: CharSequence?, newCursorPosition: Int): Boolean {
-            val str = text?.toString() ?: ""
-
-            emitEvent("onEditEvent", mapOf(
-                "type" to "compose",
-                "text" to str,
-                "cursor" to cursorPosition
-            ))
-
-            return true
-        }
-
-        override fun finishComposingText(): Boolean {
-            emitEvent("onEditEvent", mapOf(
-                "type" to "composeCommit",
-                "cursor" to cursorPosition
-            ))
-            return true
-        }
-
         override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
             if (beforeLength > 0) {
                 val deleteCount = minOf(beforeLength, cursorPosition)
 
-                emitEvent("onEditEvent", mapOf(
+                onEditEvent?.invoke(mapOf(
+                    "id" to viewId,
                     "type" to "delete",
                     "count" to deleteCount,
                     "cursor" to cursorPosition
                 ))
 
                 cursorPosition -= deleteCount
-                selectionStart = cursorPosition
-                selectionEnd = cursorPosition
             }
             return true
         }
@@ -140,23 +121,13 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             selectionEnd = end
             cursorPosition = end
 
-            emitEvent("onSelectionChange", mapOf(
+            onSelectionChange?.invoke(mapOf(
+                "id" to viewId,
                 "start" to start,
                 "end" to end
             ))
 
             return true
         }
-
-        override fun getExtractedText(
-            request: ExtractedTextRequest?,
-            flags: Int
-        ): ExtractedText? = null
-
-        override fun getSurroundingText(
-            beforeLength: Int,
-            afterLength: Int,
-            flags: Int
-        ): SurroundingText? = null
     }
 }

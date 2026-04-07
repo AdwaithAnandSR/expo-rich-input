@@ -1,11 +1,9 @@
-export { default } from "./ExpoRichInputView";
-
-export { focus, blur } from "./ExpoRichInputModule";
+export { default } from "./RichInputView";
 
 export type {
-  EditEvent,
-  EditEventType,
-  KeyboardActionEvent,
-  ExpoRichInputRef,
-  ExpoRichInputProps
+    EditEvent,
+    KeyboardActionEvent,
+    SelectionChangeEvent,
+    ExpoRichInputProps,
+    ExpoRichInputRef
 } from "./ExpoRichInput.types";

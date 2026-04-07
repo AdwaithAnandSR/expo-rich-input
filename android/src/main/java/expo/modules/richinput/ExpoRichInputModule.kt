@@ -21,6 +21,25 @@ class ExpoRichInputModule : Module() {
                 view.viewId = id
             }
 
+            // 🔥 THIS IS THE KEY FIX
+            OnViewDidUpdateProps {
+                view ->
+                view.onEditEvent = {
+                    payload ->
+                    this@ExpoRichInputModule.sendEvent("onEditEvent", payload)
+                }
+
+                view.onKeyboardAction = {
+                    payload ->
+                    this@ExpoRichInputModule.sendEvent("onKeyboardAction", payload)
+                }
+
+                view.onSelectionChange = {
+                    payload ->
+                    this@ExpoRichInputModule.sendEvent("onSelectionChange", payload)
+                }
+            }
+
             AsyncFunction("focus") {
                 view: RichInputView ->
                 view.focusInput()
