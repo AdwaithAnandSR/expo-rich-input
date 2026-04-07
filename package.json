@@ -1,6 +1,6 @@
 {
   "name": "expo-rich-input",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A native Expo module that replaces `TextInput` entirely, giving the editor raw OS-level edit deltas — insert, delete, and IME compose events — directly from `UIKeyInput` on iOS and `InputConnection` on Android, so the Rope never has to diff a full string.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
