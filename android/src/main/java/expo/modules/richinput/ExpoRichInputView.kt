@@ -9,7 +9,7 @@ import android.view.inputmethod.*
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.views.ExpoView
 
-class RichInputView(context: Context, val appContext: AppContext) : ExpoView(context, appContext) {
+class RichInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
 
     var viewId: Int = -1
 
@@ -39,13 +39,16 @@ class RichInputView(context: Context, val appContext: AppContext) : ExpoView(con
         return EditorInputConnection(this)
     }
 
+    // ✅ FINAL emitter helper (compatible with your SDK)
     private fun emitEvent(name: String, payload: Map<String, Any>) {
-        appContext.eventEmitter?.emit(
+        val emitter = appContext.eventEmitter() // ⚠️ function call required
+        emitter.emit(
             name,
             payload + mapOf("id" to viewId)
         )
     }
 
+    // 🔥 Hardware keyboard support
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.isCtrlPressed) {
             val action = when (keyCode) {
@@ -79,6 +82,7 @@ class RichInputView(context: Context, val appContext: AppContext) : ExpoView(con
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
+    // 🔥 Core Input Engine
     inner class EditorInputConnection(view: View) : BaseInputConnection(view, false) {
 
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {

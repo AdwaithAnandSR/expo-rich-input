@@ -16,15 +16,18 @@ class ExpoRichInputModule : Module() {
                 "onSelectionChange"
             )
 
-            Prop("id") { view: RichInputView, id: Int ->
+            Prop("id") {
+                view: RichInputView, id: Int ->
                 view.viewId = id
             }
 
-            AsyncFunction("focus") { view: RichInputView ->
+            AsyncFunction("focus") {
+                view: RichInputView ->
                 view.focusInput()
             }
 
-            AsyncFunction("blur") { view: RichInputView ->
+            AsyncFunction("blur") {
+                view: RichInputView ->
                 view.blurInput()
             }
         }
