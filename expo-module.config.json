@@ -1,5 +1,6 @@
 {
-  "platforms": ["apple", "android", "web"],
+  "name": "expo-rich-input",
+  "platforms": ["apple", "android"],
   "apple": {
     "modules": ["ExpoRichInputModule"]
   },

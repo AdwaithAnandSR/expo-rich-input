@@ -1,19 +1,21 @@
-import type { StyleProp, ViewStyle } from 'react-native';
+export type EditEventType = "insert" | "delete" | "compose" | "composeCommit";
 
-export type OnLoadEventPayload = {
-  url: string;
-};
+export interface EditEvent {
+    type: EditEventType;
+    text?: string;
+    count?: number;
+}
 
-export type ExpoRichInputModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
-};
+export interface KeyboardActionEvent {
+    action: "undo" | "redo" | "toggleComment";
+}
 
-export type ChangeEventPayload = {
-  value: string;
-};
+export interface ExpoRichInputRef {
+    focus: () => Promise<void>;
+    blur: () => Promise<void>;
+}
 
-export type ExpoRichInputViewProps = {
-  url: string;
-  onLoad: (event: { nativeEvent: OnLoadEventPayload }) => void;
-  style?: StyleProp<ViewStyle>;
-};
+export interface ExpoRichInputProps {
+    onEditEvent: (event: EditEvent) => void;
+    onKeyboardAction?: (event: KeyboardActionEvent) => void;
+}

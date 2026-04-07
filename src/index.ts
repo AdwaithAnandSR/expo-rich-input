@@ -1,5 +1,9 @@
-// Reexport the native module. On web, it will be resolved to ExpoRichInputModule.web.ts
-// and on native platforms to ExpoRichInputModule.ts
-export { default } from './ExpoRichInputModule';
-export { default as ExpoRichInputView } from './ExpoRichInputView';
-export * from  './ExpoRichInput.types';
+export { ExpoRichInputView } from "./ExpoRichInputView";
+export { focus, blur } from "./ExpoRichInputModule"; // can remove after testing
+export type {
+    EditEvent,
+    EditEventType,
+    KeyboardActionEvent,
+    ExpoRichInputRef,
+    ExpoRichInputProps
+} from "./ExpoRichInput.types";

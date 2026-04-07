@@ -15,6 +15,12 @@
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android"
   },
+ "files": [
+    "build",
+    "android",
+    "ios",
+    "expo-module.config.json"
+  ],
   "keywords": [
     "react-native",
     "expo",
