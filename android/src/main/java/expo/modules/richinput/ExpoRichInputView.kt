@@ -9,32 +9,36 @@ import android.view.inputmethod.*
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.views.ExpoView
 
-class RichInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
+class RichInputView(
+    context: Context,
+    appContext: AppContext
+) : ExpoView(context, appContext) {
 
-    var viewId: Int = -1
-
-    // ✅ CALLBACKS (IMPORTANT)
-    var onEditEvent: ((Map<String, Any>) -> Unit)? = null
-    var onKeyboardAction: ((Map<String, Any>) -> Unit)? = null
-    var onSelectionChange: ((Map<String, Any>) -> Unit)? = null
-
-    private var cursorPosition = 0
-    private var selectionStart = 0
-    private var selectionEnd = 0
-
+    var onEditEvent: ((Map<String, Any?>) -> Unit)? = null
+    var onKeyboardAction: ((Map<String, Any?>) -> Unit)? = null
+    var onSelectionChange: ((Map<String, Any?>) -> Unit)? = null
+   
     init {
         isFocusable = true
         isFocusableInTouchMode = true
+        isClickable = true
+        setWillNotDraw(false)
+    
+        setOnClickListener {
+            focusInput()
+        }
     }
 
     override fun onCheckIsTextEditor(): Boolean = true
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT or
+        outAttrs.inputType =
+            InputType.TYPE_CLASS_TEXT or
             InputType.TYPE_TEXT_FLAG_MULTI_LINE or
             InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or
+        outAttrs.imeOptions =
+            EditorInfo.IME_FLAG_NO_FULLSCREEN or
             EditorInfo.IME_ACTION_NONE
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -44,7 +48,6 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         return EditorInputConnection(this)
     }
 
-    // 🔥 Hardware keyboard
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.isCtrlPressed) {
             val action = when (keyCode) {
@@ -58,10 +61,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             }
 
             action?.let {
-                onKeyboardAction?.invoke(mapOf(
-                    "id" to viewId,
-                    "action" to it
-                ))
+                onKeyboardAction?.invoke(mapOf("action" to it))
                 return true
             }
         }
@@ -71,63 +71,110 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
 
     fun focusInput() {
         requestFocus()
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+        post {
+            val imm =
+                context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(this, InputMethodManager.SHOW_FORCED)
+        }
     }
 
     fun blurInput() {
         clearFocus()
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    inner class EditorInputConnection(view: View) : BaseInputConnection(view, false) {
+    inner class EditorInputConnection(view: View) :
+        BaseInputConnection(view, false) {
 
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: return false
 
-            onEditEvent?.invoke(mapOf(
-                "id" to viewId,
-                "type" to "insert",
-                "text" to str,
-                "cursor" to cursorPosition
-            ))
-
-            cursorPosition += str.length
-            selectionStart = cursorPosition
-            selectionEnd = cursorPosition
+            onEditEvent?.invoke(
+                mapOf(
+                    "type" to "insert",
+                    "text" to str
+                )
+            )
 
             return true
         }
 
-        override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
+        override fun setComposingText(
+            text: CharSequence?,
+            newCursorPosition: Int
+        ): Boolean {
+            val str = text?.toString() ?: ""
+
+            onEditEvent?.invoke(
+                mapOf(
+                    "type" to "compose",
+                    "text" to str
+                )
+            )
+
+            return true
+        }
+
+        override fun finishComposingText(): Boolean {
+            onEditEvent?.invoke(
+                mapOf("type" to "composeCommit")
+            )
+            return true
+        }
+
+        override fun deleteSurroundingText(
+            beforeLength: Int,
+            afterLength: Int
+        ): Boolean {
             if (beforeLength > 0) {
-                val deleteCount = minOf(beforeLength, cursorPosition)
-
-                onEditEvent?.invoke(mapOf(
-                    "id" to viewId,
-                    "type" to "delete",
-                    "count" to deleteCount,
-                    "cursor" to cursorPosition
-                ))
-
-                cursorPosition -= deleteCount
+                onEditEvent?.invoke(
+                    mapOf(
+                        "type" to "delete",
+                        "count" to beforeLength
+                    )
+                )
             }
             return true
         }
 
         override fun setSelection(start: Int, end: Int): Boolean {
-            selectionStart = start
-            selectionEnd = end
-            cursorPosition = end
+            onSelectionChange?.invoke(
+                mapOf(
+                    "start" to start,
+                    "end" to end
+                )
+            )
+            return true
+        }
 
-            onSelectionChange?.invoke(mapOf(
-                "id" to viewId,
-                "start" to start,
-                "end" to end
-            ))
+        // handle Enter / Done / etc
+        override fun performEditorAction(actionCode: Int): Boolean {
+            val action = when (actionCode) {
+                EditorInfo.IME_ACTION_DONE,
+                EditorInfo.IME_ACTION_GO,
+                EditorInfo.IME_ACTION_SEND,
+                EditorInfo.IME_ACTION_NEXT -> "enter"
+                else -> "unknown"
+            }
+
+            onKeyboardAction?.invoke(
+                mapOf("action" to action)
+            )
 
             return true
         }
+
+        override fun getExtractedText(
+            request: ExtractedTextRequest?,
+            flags: Int
+        ): ExtractedText? = null
+
+        override fun getSurroundingText(
+            beforeLength: Int,
+            afterLength: Int,
+            flags: Int
+        ): SurroundingText? = null
     }
 }

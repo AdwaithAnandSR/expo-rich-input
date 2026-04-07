@@ -16,28 +16,28 @@ class ExpoRichInputModule : Module() {
                 "onSelectionChange"
             )
 
-            Prop("id") {
-                view: RichInputView, id: Int ->
-                view.viewId = id
-            }
-
-            // 🔥 THIS IS THE KEY FIX
-            OnViewDidUpdateProps {
+            OnViewDidMount {
                 view ->
+
                 view.onEditEvent = {
                     payload ->
-                    this@ExpoRichInputModule.sendEvent("onEditEvent", payload)
+                    view.dispatchEvent("onEditEvent", payload)
                 }
 
                 view.onKeyboardAction = {
                     payload ->
-                    this@ExpoRichInputModule.sendEvent("onKeyboardAction", payload)
+                    view.dispatchEvent("onKeyboardAction", payload)
                 }
 
                 view.onSelectionChange = {
                     payload ->
-                    this@ExpoRichInputModule.sendEvent("onSelectionChange", payload)
+                    view.dispatchEvent("onSelectionChange", payload)
                 }
+            }
+
+            Prop("editable") {
+                view: RichInputView, value: Boolean ->
+                view.isEnabled = value
             }
 
             AsyncFunction("focus") {
