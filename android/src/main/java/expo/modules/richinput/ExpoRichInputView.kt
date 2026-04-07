@@ -39,9 +39,9 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         return EditorInputConnection(this)
     }
 
-    // ✅ FINAL emitter helper (compatible with your SDK)
+    // FINAL emitter helper<
     private fun emitEvent(name: String, payload: Map<String, Any>) {
-        val emitter = appContext.eventEmitter() // ⚠️ function call required
+        val emitter = appContext.eventEmitter ?: return
         emitter.emit(
             name,
             payload + mapOf("id" to viewId)
