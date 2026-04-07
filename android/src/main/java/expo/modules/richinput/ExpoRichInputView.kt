@@ -39,14 +39,11 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         return EditorInputConnection(this)
     }
 
-    // FINAL emitter helper<
+    // FINAL emitter helper
     private fun emitEvent(name: String, payload: Map<String, Any>) {
-        val emitter = appContext.eventEmitter ?: return
-        emitter.emit(
-            name,
-            payload + mapOf("id" to viewId)
-        )
+        sendEvent(name, payload + mapOf("id" to viewId))
     }
+
 
     // 🔥 Hardware keyboard support
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
