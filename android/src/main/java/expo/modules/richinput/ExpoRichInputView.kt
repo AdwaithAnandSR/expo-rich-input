@@ -51,7 +51,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             }
 
             action?.let {
-                this@RichInputView.emit("onKeyboardAction", mapOf("action" to it))
+                sendEvent("onKeyboardAction", mapOf("action" to it))
                 return true
             }
         }
@@ -73,10 +73,11 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
 
     // 🔥 Core Input Engine
     inner class EditorInputConnection(view: View) : BaseInputConnection(view, false) {
+
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: return false
 
-            this@RichInputView.emit("onEditEvent", mapOf(
+            sendEvent("onEditEvent", mapOf(
                 "type" to "insert",
                 "text" to str,
                 "cursor" to cursorPosition
@@ -92,7 +93,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         override fun setComposingText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: ""
 
-            this@RichInputView.emit("onEditEvent", mapOf(
+            sendEvent("onEditEvent", mapOf(
                 "type" to "compose",
                 "text" to str,
                 "cursor" to cursorPosition
@@ -102,7 +103,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
         }
 
         override fun finishComposingText(): Boolean {
-            this@RichInputView.emit("onEditEvent", mapOf(
+            sendEvent("onEditEvent", mapOf(
                 "type" to "composeCommit",
                 "cursor" to cursorPosition
             ))
@@ -113,7 +114,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             if (beforeLength > 0) {
                 val deleteCount = minOf(beforeLength, cursorPosition)
 
-                this@RichInputView.emit("onEditEvent", mapOf(
+                sendEvent("onEditEvent", mapOf(
                     "type" to "delete",
                     "count" to deleteCount,
                     "cursor" to cursorPosition
@@ -131,7 +132,7 @@ class RichInputView(context: Context, appContext: AppContext) : ExpoView(context
             selectionEnd = end
             cursorPosition = end
 
-            this@RichInputView.emit("onSelectionChange", mapOf(
+            sendEvent("onSelectionChange", mapOf(
                 "start" to start,
                 "end" to end
             ))
