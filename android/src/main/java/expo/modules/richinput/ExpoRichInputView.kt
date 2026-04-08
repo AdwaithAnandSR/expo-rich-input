@@ -18,6 +18,7 @@ class RichInputView(
     var onKeyboardAction: ((Map<String, Any?>) -> Unit)? = null
     var onSelectionChange: ((Map<String, Any?>) -> Unit)? = null
    
+    
     init {
         isFocusable = true
         isFocusableInTouchMode = true
@@ -26,6 +27,18 @@ class RichInputView(
     
         setOnClickListener {
             focusInput()
+        }
+    
+        onEditEvent = { payload ->
+            dispatchEvent("onEditEvent", payload)
+        }
+    
+        onKeyboardAction = { payload ->
+            dispatchEvent("onKeyboardAction", payload)
+        }
+    
+        onSelectionChange = { payload ->
+            dispatchEvent("onSelectionChange", payload)
         }
     }
 

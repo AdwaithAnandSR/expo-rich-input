@@ -16,25 +16,6 @@ class ExpoRichInputModule : Module() {
                 "onSelectionChange"
             )
 
-            OnCreate {
-                view ->
-
-                view.onEditEvent = {
-                    payload ->
-                    view.dispatchEvent("onEditEvent", payload)
-                }
-
-                view.onKeyboardAction = {
-                    payload ->
-                    view.dispatchEvent("onKeyboardAction", payload)
-                }
-
-                view.onSelectionChange = {
-                    payload ->
-                    view.dispatchEvent("onSelectionChange", payload)
-                }
-            }
-
             Prop("editable") {
                 view: RichInputView, value: Boolean ->
                 view.isEnabled = value
