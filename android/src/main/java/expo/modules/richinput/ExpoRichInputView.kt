@@ -8,26 +8,34 @@ import android.view.View
 import android.view.inputmethod.*
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.views.ExpoView
-import expo.modules.kotlin.events.EventDispatcher
+import expo.modules.kotlin.viewevent.EventDispatcher
+import android.view.MotionEvent
 
 class RichInputView(
     context: Context,
     appContext: AppContext
 ) : ExpoView(context, appContext) {
 
-    val onEditEvent by EventDispatcher<Map<String, Any?>>()
-    val onKeyboardAction by EventDispatcher<Map<String, Any?>>()
-    val onSelectionChange by EventDispatcher<Map<String, Any?>>()
+    private val onEditEvent by EventDispatcher<Map<String, Any?>>()
+    private val onKeyboardAction by EventDispatcher<Map<String, Any?>>()
+    private val onSelectionChange by EventDispatcher<Map<String, Any?>>()
 
     init {
         isFocusable = true
         isFocusableInTouchMode = true
-        isClickable = true
-        setWillNotDraw(false)
+    }
 
-        setOnClickListener {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_UP) {
             focusInput()
+            performClick()
         }
+        return true
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 
     override fun onCheckIsTextEditor(): Boolean = true
@@ -42,9 +50,7 @@ class RichInputView(
         EditorInfo.IME_FLAG_NO_FULLSCREEN or
         EditorInfo.IME_ACTION_NONE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            outAttrs.initialCapsMode = 0
-        }
+        outAttrs.initialCapsMode = 0
 
         return EditorInputConnection(this)
     }
@@ -108,7 +114,6 @@ class RichInputView(
             newCursorPosition: Int
         ): Boolean {
             val str = text?.toString() ?: ""
-
 
             onEditEvent(mapOf(
                 "type" to "compose",
