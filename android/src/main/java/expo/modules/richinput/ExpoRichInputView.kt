@@ -42,13 +42,13 @@ class RichInputView(
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
         outAttrs.inputType =
-            InputType.TYPE_CLASS_TEXT or
-            InputType.TYPE_TEXT_FLAG_MULTI_LINE or
-            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        InputType.TYPE_CLASS_TEXT or
+        InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+        InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
 
         outAttrs.imeOptions =
-            EditorInfo.IME_FLAG_NO_FULLSCREEN or
-            EditorInfo.IME_ACTION_NONE
+        EditorInfo.IME_FLAG_NO_FULLSCREEN or
+        EditorInfo.IME_ACTION_NONE
 
         outAttrs.initialCapsMode = 0
 
@@ -80,7 +80,7 @@ class RichInputView(
         requestFocus()
         post {
             val imm =
-                context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(this, InputMethodManager.SHOW_FORCED)
         }
     }
@@ -88,12 +88,12 @@ class RichInputView(
     fun blurInput() {
         clearFocus()
         val imm =
-            context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
     inner class EditorInputConnection(view: View) :
-        BaseInputConnection(view, false) {
+    BaseInputConnection(view, false) {
 
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             val str = text?.toString() ?: return false
@@ -130,19 +130,26 @@ class RichInputView(
             return true
         }
 
-        override fun deleteSurroundingText(
-            beforeLength: Int,
-            afterLength: Int
-        ): Boolean {
+
+        override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
             if (beforeLength > 0) {
-                onEditEvent(
-                    mapOf(
-                        "type" to "delete",
-                        "count" to beforeLength
-                    )
-                )
+                onEditEvent(mapOf("type" to "delete", "count" to beforeLength))
+            }
+            if (afterLength > 0) {
+                onEditEvent(mapOf("type" to "deleteForward", "count" to afterLength))
             }
             return true
+        }
+
+        override fun sendKeyEvent(event: KeyEvent): Boolean {
+            if (event.action == KeyEvent.ACTION_DOWN &&
+                event.keyCode == KeyEvent.KEYCODE_DEL) {
+                onEditEvent(mapOf(
+                    "type" to "delete",
+                    "count" to 1
+                ))
+            }
+            return super.sendKeyEvent(event)
         }
 
         override fun setSelection(start: Int, end: Int): Boolean {
