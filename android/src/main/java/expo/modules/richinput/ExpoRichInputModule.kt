@@ -2,7 +2,7 @@ package expo.modules.richinput
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.queues.Queues
+import expo.modules.kotlin.functions.Queues 
 
 class ExpoRichInputModule : Module() {
     override fun definition() = ModuleDefinition {
